@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/providers/ThemeProvider"; // We will create this file next
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import Navbar from "@/components/shared/Navbar";
+// 1. Drop your cart provider import in cleanly right here:
+import { CartProvider } from "@/context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,17 +28,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      suppressHydrationWarning // Required by next-themes to prevent hydration mismatches
+      suppressHydrationWarning
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      {/* next-themes automatically attaches the class to <html>,
-          so our body utilities handle the color changes across the entire page */}
       <body className="min-h-full flex flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
-        <ThemeProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-        </ThemeProvider>
+        {/* 2. Wrap everything neatly so both themes and cart memory talk to each other down the tree */}
+        <CartProvider>
+          <ThemeProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+          </ThemeProvider>
+        </CartProvider>
       </body>
     </html>
   );

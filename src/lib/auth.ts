@@ -7,15 +7,23 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
 
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: true,
+        defaultValue: "USER",
+      },
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
 
     sendResetPassword: async ({ user, url }: { user: { email: string; name: string }; url: string }) => {
-
       const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
       try {
-
         const response = await fetch(BREVO_API_URL, {
           method: "POST",
           headers: {
@@ -52,13 +60,9 @@ export const auth = betterAuth({
         }
 
       } catch (error) {
-
         console.error("Failed to route reset password email payload through Brevo:", error);
-
       }
-
     }
-
   },
 
   emailVerification: {
@@ -106,7 +110,6 @@ export const auth = betterAuth({
       }
     },
   },
-
 
   socialProviders: {
     google: {

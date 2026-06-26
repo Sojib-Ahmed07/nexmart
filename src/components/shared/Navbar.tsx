@@ -6,10 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { ShoppingBag, Search, Menu, X, Sun, Moon, LogOut, User } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
+// 1. Import your custom dynamic memory state hook 🚀
+import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  // 2. Consume your live real-time cart tracker variables
+  const { cartCount } = useCart();
+
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -68,11 +73,8 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
-            <Link href="/products" className="hover:text-indigo-500 transition-colors">
+            <Link href="/shop" className="hover:text-indigo-500 transition-colors">
               All Products
-            </Link>
-            <Link href="/shops" className="hover:text-indigo-500 transition-colors">
-              Shops
             </Link>
           </div>
 
@@ -103,7 +105,12 @@ export default function Navbar() {
 
             <Link href="/cart" className="p-2 relative transition-colors" aria-label="Cart">
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute top-1 right-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span>
+              {/* 3. Swap the static 0 placeholder with your dynamic live cart counts! 🎯 */}
+              {cartCount > 0 && (
+                <span className="absolute top-1 right-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center transition-scale duration-200">
+                  {cartCount}
+                </span>
+              )}
             </Link>
 
             <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
@@ -175,7 +182,12 @@ export default function Navbar() {
 
             <Link href="/cart" className="p-2 relative text-gray-600 dark:text-gray-300" aria-label="Cart">
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute top-1 right-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span>
+              {/* 4. Update the mobile layout indicator as well! */}
+              {cartCount > 0 && (
+                <span className="absolute top-1 right-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
 
             <button
