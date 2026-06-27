@@ -5,19 +5,14 @@ import { getAdminCategories, createGlobalCategory } from './actions';
 export default async function AdminCategoriesPage() {
   const categories = await getAdminCategories();
 
-  async function handleForm(formData: FormData) {
-    "use server";
-    await createGlobalCategory(formData);
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-300">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
-          Global Categories <Layers className="h-7 w-7 text-indigo-600" />
+          Global Categories <Layers className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Manage system-wide taxomony and catalog categorization structures.
+          Manage system-wide taxonomy and catalog categorization structures.
         </p>
       </div>
 
@@ -37,7 +32,7 @@ export default async function AdminCategoriesPage() {
               {categories.map((cat) => (
                 <div key={cat.id} className="p-4 px-6 flex items-center justify-between hover:bg-gray-50/40 dark:hover:bg-gray-800/20 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500">
+                    <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                       <Tag className="h-4 w-4" />
                     </div>
                     <span className="font-semibold text-gray-900 dark:text-white">{cat.name}</span>
@@ -53,15 +48,22 @@ export default async function AdminCategoriesPage() {
         <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Add New Category</h3>
 
-          <form action={handleForm} className="space-y-4">
+          {/* Fixed inline action wrapper mapping to discard returned object payload state parameters */}
+          <form
+            action={async (formData: FormData) => {
+              "use server";
+              await createGlobalCategory(formData);
+            }}
+            className="space-y-4"
+          >
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Category Name</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Category Name</label>
               <input
                 required
                 type="text"
                 name="name"
                 placeholder="e.g., Electronics, Fitness..."
-                className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 transition-colors"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm"
               />
             </div>
 

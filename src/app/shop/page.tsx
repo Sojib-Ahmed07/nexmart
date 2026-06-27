@@ -1,113 +1,106 @@
-import React from 'react';
-import Link from 'next/link';
-import { ShoppingBag, Store, Tag } from 'lucide-react';
-import { getMarketplaceCatalog } from './actions';
+import React from "react";
+import prisma from "@/lib/prisma";
+import Link from "next/link";
+import { ShoppingBag, ArrowLeft, Layers } from "lucide-react";
 
 interface ShopPageProps {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{
+    category?: string;
+  }>;
 }
 
-export default async function PublicShopPage({ searchParams }: ShopPageProps) {
-  const resolvedParams = await searchParams;
-  const activeCategory = resolvedParams.category || "all";
+async function getCatalogProducts(categorySlug?: string) {
+  return await prisma.product.findMany({
+    where: {
+      stock: { gt: 0 },
+      store: { status: "APPROVED" },
+      // Dynamically matches the exact text string slug column if present
+      ...(categorySlug
+        ? {
+            category: {
+              slug: categorySlug,
+            },
+          }
+        : {}),
+    },
+    include: {
+      store: { select: { name: true } },
+      category: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
 
-  const { products, categories } = await getMarketplaceCatalog(activeCategory);
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const resolvedParams = await searchParams;
+  const targetCategorySlug = resolvedParams.category;
+  const products = await getCatalogProducts(targetCategorySlug);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-6 md:px-12 space-y-10">
-      {/* HEADER HERO AREA */}
-      <div className="max-w-7xl mx-auto text-center space-y-3">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-          The NexMart Marketplace 🛒
-        </h1>
-        <p className="text-md text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          Browse items published instantly across our independent multi-tenant vendor storefront nodes.
-        </p>
-      </div>
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-      {/* CATEGORY CHIPS FILTER COMPONENT */}
-      <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-2.5">
-        <Link
-          href="/shop"
-          className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all border ${activeCategory === "all"
-            ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-            : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300"
-            }`}
-        >
-          All Items
-        </Link>
-        {categories.map((category) => (
-          <Link
-            key={category.id}
-            href={`/shop?category=${category.slug}`}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all border ${activeCategory === category.slug
-              ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300"
-              }`}
-          >
-            {category.name}
-          </Link>
-        ))}
-      </div>
+        {/* HEADER SECTION MAP */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 dark:border-gray-900 pb-6">
+          <div className="space-y-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider mb-2"
+            >
+              <ArrowLeft size={12} /> Index Return
+            </Link>
+            <h1 className="text-3xl font-black tracking-tight flex items-center gap-2">
+              Marketplace Catalog <ShoppingBag className="h-7 w-7 text-indigo-600" />
+            </h1>
+            {targetCategorySlug && products.length > 0 && (
+              <p className="text-xs font-mono inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 px-2.5 py-1 rounded-md mt-1 font-bold">
+                <Layers size={12} /> Active Node: {products[0].category.name} (/{targetCategorySlug})
+              </p>
+            )}
+          </div>
+        </div>
 
-      {/* PRODUCT INTERACTIVE CATALOG GRID */}
-      <div className="max-w-7xl mx-auto">
+        {/* INVENTORY MAPPING RESULTS GRID */}
         {products.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8">
-            <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Inventory Match</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              No merchant items have been added to this taxonomy mapping segment yet.
-            </p>
+          <div className="p-16 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-gray-400 text-sm max-w-md mx-auto space-y-2">
+            <ShoppingBag className="h-8 w-8 mx-auto text-gray-300 dark:text-gray-700" />
+            <p className="font-semibold">No operational units found.</p>
+            <p className="text-xs text-gray-500">There are no matching verified listings assigned to this category query.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                className="group bg-white dark:bg-gray-900/40 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md overflow-hidden transition-all flex flex-col"
               >
-                {/* IMAGE BOUND */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 border-b border-gray-50 dark:border-gray-800">
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {product.stock <= 5 && product.stock > 0 && (
-                    <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider">
-                      Low Stock
-                    </span>
+                <div className="p-4 bg-gray-50/50 dark:bg-gray-900/20 aspect-square flex items-center justify-center relative overflow-hidden">
+                  {product.images?.[0] && (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="max-h-44 w-auto object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
+                    />
                   )}
                 </div>
-
-                {/* METADATA SHIFT BODY */}
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-1">
-                    {/* Store Origin Badge */}
-                    <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500 text-xs">
-                      <Store className="h-3.5 w-3.5 text-indigo-500" />
-                      <span className="font-medium truncate">{(product as any).store?.name || "Merchant Node"}</span>
-                    </div>
-                    <h3 className="font-bold text-gray-900 dark:text-white text-base tracking-tight line-clamp-1">
+                    <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">
+                      {product.store.name}
+                    </span>
+                    <h4 className="font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 text-sm leading-snug">
                       {product.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                      {product.description || "No specific details published."}
-                    </p>
+                    </h4>
                   </div>
-
-                  {/* WITH THIS UPDATED TYPE-SAFE ROUTING CODE: */}
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xl font-extrabold text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-50 dark:border-gray-900">
+                    <span className="text-base font-black text-gray-900 dark:text-white">
                       {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(product.price))}
                     </span>
-
                     <Link
                       href={`/shop/${product.slug}`}
-                      className="px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white text-xs font-bold tracking-wide transition-colors shadow-sm inline-flex items-center justify-center"
+                      className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors"
                     >
-                      View Product
+                      Inspect
                     </Link>
                   </div>
                 </div>
@@ -115,6 +108,7 @@ export default async function PublicShopPage({ searchParams }: ShopPageProps) {
             ))}
           </div>
         )}
+
       </div>
     </div>
   );

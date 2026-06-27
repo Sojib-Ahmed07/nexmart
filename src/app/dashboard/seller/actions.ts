@@ -14,24 +14,32 @@ export async function getSellerDashboardData() {
     redirect("/login");
   }
 
-  // 1. Find the vendor's active storefront
   const sellerStore = await prisma.store.findFirst({
     where: { userId: session.user.id },
   });
 
   if (!sellerStore) {
-    return { hasStore: false, stats: null, recentSales: [] };
+    return { hasStore: false, status: null, stats: null, recentSales: [] };
+  }
+
+  // If store exists but isn't approved, skip data fetching to save performance
+  if (sellerStore.status !== "APPROVED") {
+    return {
+      hasStore: true,
+      status: sellerStore.status,
+      storeName: sellerStore.name,
+      stats: null,
+      recentSales: []
+    };
   }
 
   const storeId = sellerStore.id;
 
-  // 2. Query data safely without sorting by a non-existent orderItem timestamp
   const [totalProducts, lowStockCount, orderItems] = await Promise.all([
     prisma.product.count({ where: { storeId } }),
     prisma.product.count({ where: { storeId, stock: { lt: 5 } } }),
     prisma.orderItem.findMany({
       where: { storeId },
-      // Check if your schema capitalized this relation to 'Product: true' or uses 'productId'
       include: {
         product: { select: { name: true } },
       },
@@ -43,6 +51,7 @@ export async function getSellerDashboardData() {
 
   return {
     hasStore: true,
+    status: sellerStore.status,
     storeName: sellerStore.name,
     stats: {
       revenue: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalRevenue),
@@ -51,11 +60,10 @@ export async function getSellerDashboardData() {
     },
     recentSales: orderItems.map((item) => ({
       id: item.id,
-      // Fallback gracefully if your relation name inside schema.prisma is different
-      productName: (item as any).product?.name || "Marketplace Product",
+      productName: item.product?.name || "Marketplace Product",
       quantity: item.quantity,
       total: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(item.price) * item.quantity),
-      date: "Recent Item", // Using static string since OrderItem lacks direct timestamp
+      date: "Recent Item",
     })),
   };
 }
