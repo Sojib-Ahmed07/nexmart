@@ -103,7 +103,7 @@ Payments run through SSLCommerz, a real Bangladeshi payment gateway, supporting:
 * **📱 Mobile banking** — bKash, Nagad, Rocket
 * **💳 Cards** — Visa, Mastercard, Amex
 * **🏦 Internet banking** — multiple banks
-* **💵 Currency:** BDT
+* **💵 Currency:** USD
 
 The checkout flow creates an order in the database first (status: `PAYMENT_PENDING`), then redirects the user to SSLCommerz. On return:
 * **Success** — order is marked paid, and stock is decremented atomically in a single database transaction
