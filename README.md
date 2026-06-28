@@ -4,6 +4,8 @@
 <a href="https://nexmart-labs.vercel.app" target="_blank"><strong>Live Demo Website →</strong></a>
 </div>
 
+> ⚡ **Live Deployment Note:** The project is hosted on Vercel's free serverless tier. If the site hasn't been visited recently, the application instances may need a few seconds to complete a "cold start" and wake up. Subsequent page loads will be instant.
+
 ---
 
 ## 📸 Platform Interface Showcase
