@@ -161,6 +161,10 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 
+# Google api key
+GOOGLE_CLIENT_ID="*******"
+GOOGLE_CLIENT_SECRET="*********"
+
 # Transactional Email Engine API Key (Brevo)
 BREVO_API_KEY="your-brevo-key"
 
