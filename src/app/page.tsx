@@ -9,6 +9,7 @@ import DualActionCTA from '@/components/home/DualActionCTA';
 import PartnersCarousel from '@/components/home/PartnersCarousel';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, LayoutGrid } from 'lucide-react';
+import FeaturesGrid from '@/components/home/FeaturesGrid';
 
 async function getHomepageData() {
   const [session, categories, trendingProducts] = await Promise.all([
@@ -81,6 +82,8 @@ export default async function HomePage() {
           <TrendingHardware products={trendingProducts} />
         </section>
       )}
+
+      <FeaturesGrid/>
 
       {/* CONTEXT-DRIVEN CTAs */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
