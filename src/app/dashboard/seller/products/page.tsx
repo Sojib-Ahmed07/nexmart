@@ -1,11 +1,11 @@
 import React from 'react';
-import { Plus, Package, AlertCircle, ShoppingBag, Clock } from 'lucide-react';
-import { getSellerProducts, createProduct } from './actions';
+import { Package, AlertCircle, Clock } from 'lucide-react';
+import { getSellerProducts } from './actions';
+import ProductForm from './ProductForm';
 
 export default async function SellerProductsPage() {
   const { products, categories, storeId, isApproved } = await getSellerProducts();
 
-  // If the vendor tries to load this layout path directly without admin clearance, block the screen
   if (!isApproved) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm animate-in fade-in duration-300">
@@ -91,68 +91,14 @@ export default async function SellerProductsPage() {
           )}
         </div>
 
-        {/* RIGHT COLUMN: THE CREATION WORKSPACE FORM */}
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-5">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5 text-indigo-600 dark:text-indigo-400" /> Create New Listing
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Provision additional stock lines instantly.</p>
-          </div>
-
+        {/* RIGHT COLUMN: RENDER MODULAR CLIENT FORM */}
+        <div>
           {!storeId ? (
             <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-rose-700 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
               <AlertCircle className="h-4 w-4" /> Resolve storefront application steps first.
             </div>
           ) : (
-            /* Wrapped using an explicit inline action execution pattern to completely eliminate the TypeScript return-type mismatch error */
-            <form
-              action={async (formData: FormData) => {
-                "use server";
-                await createProduct(formData);
-              }}
-              className="space-y-4"
-            >
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Product Title Name</label>
-                <input required type="text" name="name" placeholder="Mechanical Keyboards, Hoodies..." className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Price (USD)</label>
-                  <input required type="number" step="0.01" min="0.01" name="price" placeholder="99.99" className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Stock Count</label>
-                  <input required type="number" min="1" name="stock" placeholder="25" className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Global Category Binding</label>
-                <select required name="categoryId" className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm cursor-pointer">
-                  <option value="" className="text-gray-400">Select a category mapping...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id} className="text-gray-900 dark:text-white bg-white dark:bg-gray-800">{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Image Asset URL (Optional)</label>
-                <input type="url" name="imageUrl" placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm" />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Item Copy/Description</label>
-                <textarea rows={3} name="description" placeholder="Specify dimension data, variant limits, or layout details..." className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors shadow-sm resize-none" />
-              </div>
-
-              <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold tracking-wide transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                <Plus className="h-3.5 w-3.5" /> Deploy Product Entry
-              </button>
-            </form>
+            <ProductForm categories={categories} />
           )}
         </div>
       </div>

@@ -5,7 +5,13 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
+import { v2 as cloudinary } from "cloudinary";
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 /**
  * Validates session and ensures the active store belongs to the logged-in user
  * AND has been approved by a platform administrator.
@@ -24,10 +30,37 @@ async function getValidatedStore() {
 
   // Strict gate check: block unapproved storefront execution paths
   if (store.status !== "APPROVED") {
-    throw new Error("Access Denied: Your storefront is pending administrative approval.");
+    throw new Error(
+      "Access Denied: Your storefront is pending administrative approval.",
+    );
   }
 
   return store;
+}
+
+export async function uploadImageToServer(formData: FormData) {
+  try {
+    const file = formData.get("file") as File;
+    if (!file || file.size === 0) {
+      throw new Error("No file asset discovered.");
+    }
+
+    // Convert file arrayBuffer into node Buffer context pipeline
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Convert to Base64 format string compatible with Cloudinary's upload engine
+    const fileBase64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
+      folder: "nexmart_products", // Automatically organizes assets inside a folder
+    });
+
+    return { success: true, url: uploadResponse.secure_url };
+  } catch (error: any) {
+    console.error("Cloudinary backend upload crash:", error);
+    return { success: false, error: error.message || "Failed uploading file." };
+  }
 }
 
 // 1. Retrieve all products for the authenticated store if cleared
@@ -47,13 +80,15 @@ export async function getSellerProducts() {
   } catch (error) {
     // If validation fails because they aren't approved, drop a fallback status to the UI
     const session = await auth.api.getSession({ headers: await headers() });
-    const store = session?.user ? await prisma.store.findFirst({ where: { userId: session.user.id } }) : null;
+    const store = session?.user
+      ? await prisma.store.findFirst({ where: { userId: session.user.id } })
+      : null;
 
     return {
       products: [],
       categories: [],
       storeId: store?.id || null,
-      isApproved: false
+      isApproved: false,
     };
   }
 }
@@ -68,13 +103,18 @@ export async function createProduct(formData: FormData) {
     const priceInput = formData.get("price") as string;
     const stockInput = formData.get("stock") as string;
     const categoryId = formData.get("categoryId") as string;
-    const imageUrl = formData.get("imageUrl") as string || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+    const imageUrl =
+      (formData.get("imageUrl") as string) ||
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
 
     if (!name || !priceInput || !stockInput || !categoryId) {
       return { success: false, error: "Missing required fields." };
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
 
     await prisma.product.create({
       data: {
@@ -93,7 +133,10 @@ export async function createProduct(formData: FormData) {
     return { success: true };
   } catch (error: any) {
     console.error("Product creation error:", error);
-    return { success: false, error: error.message || "Failed to persist product to database." };
+    return {
+      success: false,
+      error: error.message || "Failed to persist product to database.",
+    };
   }
 }
 
@@ -105,7 +148,7 @@ export async function deleteProduct(productId: string) {
     await prisma.product.deleteMany({
       where: {
         id: productId,
-        storeId: store.id
+        storeId: store.id,
       },
     });
 
@@ -113,6 +156,9 @@ export async function deleteProduct(productId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Delete error:", error);
-    return { success: false, error: error.message || "Could not remove product." };
+    return {
+      success: false,
+      error: error.message || "Could not remove product.",
+    };
   }
 }
