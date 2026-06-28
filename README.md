@@ -124,36 +124,62 @@ The checkout flow creates an order in the database first (status: `PAYMENT_PENDI
 ## 🚀 Getting Started
 
 ### Prerequisites
-Node.js 18+, PostgreSQL database, Cloudinary account, Brevo account, SSLCommerz sandbox account
+Before setting up the project locally, ensure you have the following installed and configured:
+* **Node.js** (Version 18 or higher)
+* **PostgreSQL Database** (Local instance or cloud hosted)
+* Third-party sandbox accounts: **Cloudinary**, **Brevo**, and **SSLCommerz**
 
-### Setup
+---
+
+### Local Installation & Setup
+
+#### 1. Clone the Repository
+Open your terminal and run the following commands to pull the codebase and install dependencies:
+
 ```bash
 git clone [https://github.com/Sojib-Ahmed07/nexmart.git](https://github.com/Sojib-Ahmed07/nexmart.git)
 cd nexmart
 npm install
+```
 
+#### 2. Configure Environment Variables
 
-Create a .env file in the root folder:
+Create a file named .env in the root folder of your project and populate it with your respective provider API keys using the template below:
 
 Code snippet
+```bash
+# Relational Database Connection (PostgreSQL)
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
+# Authentication Configuration (Better-Auth)
 BETTER_AUTH_SECRET="your-32-char-secret"
 BETTER_AUTH_URL="http://localhost:3000"
 
+# Cloud Media Delivery Pipeline (Cloudinary)
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 
+# Transactional Email Engine API Key (Brevo)
 BREVO_API_KEY="your-brevo-key"
 
+# Payment Gateway Sandbox Credentials (SSLCommerz)
 SSLCOMMERZ_STORE_ID="your-store-id"
 SSLCOMMERZ_STORE_PASSWORD="your-store-password"
 SSLCOMMERZ_IS_SANDBOX="true"
-Push database schemas and spin up node runtime server:
+```
+
+💡 Note on Local Gateway Testing: To accurately process transactional payment callbacks via SSLCommerz on localhost, expose your local node server environment via an automated reverse proxy tunnel (like ngrok) and synchronize your NEXT_PUBLIC_APP_URL parameter with the active ngrok URL proxy string.
+
+3. Push Schema & Initialize Platform Runtime
+Execute the following commands sequentially in your terminal to synchronize your database schemas and boot up the dynamic Next.js development server:
 
 Bash
-npx prisma db push   # Set up the database
-npm run dev          # Start the app
-Note: To test SSLCommerz payment callbacks locally, expose your dev server with ngrok and update NEXT_PUBLIC_APP_URL to the ngrok URL.
+```bash
+# Push Prisma ORM data schemas straight to your relational database instance
+npx prisma db push   
+
+# Fire up the dynamic development platform ecosystem loop
+npm run dev
+```
