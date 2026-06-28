@@ -4,13 +4,32 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+// 1. Explicitly type params as a Promise for async parameter resolution
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function OrderDetailPage({ params }: PageProps) {
+  // 2. Await the params object before extracting the dynamic ID property
+  const resolvedParams = await params;
+  const orderId = resolvedParams.id;
+
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/login");
 
-  const order = await prisma.order.findUnique({
-    where: { id: params.id, userId: session.user.id },
-    include: { orderItems: { include: { product: true } } }
+  // 3. Swap findUnique to findFirst to avoid compound index runtime limitations
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      userId: session.user.id
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: true
+        }
+      }
+    }
   });
 
   if (!order) redirect("/dashboard/user/orders");

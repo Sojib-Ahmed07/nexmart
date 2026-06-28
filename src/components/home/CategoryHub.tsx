@@ -1,21 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
-import prisma from "@/lib/prisma";
 import { LayoutGrid, ArrowUpRight } from 'lucide-react';
 
-export default async function CategoryHub() {
-  // Fetch real category records and aggregate the active product count per category
-  const categories = await prisma.category.findMany({
-    include: {
-      _count: {
-        select: { products: true }
-      }
-    },
-    orderBy: {
-      name: 'asc'
-    }
-  });
+// Explicitly define the props structure received from page.tsx
+interface CategoryHubProps {
+  categories: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+}
 
+export default function CategoryHub({ categories }: CategoryHubProps) {
   if (!categories || categories.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center text-sm text-gray-400 font-medium">
@@ -48,11 +44,6 @@ export default async function CategoryHub() {
                 <span>{cat.name}</span>
                 <ArrowUpRight size={14} className="opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300 hidden md:block shrink-0 text-indigo-500" />
               </h4>
-
-              {/* Live inventory aggregation indicator */}
-              <span className="text-[10px] font-black uppercase tracking-wider font-mono text-gray-400/80 dark:text-gray-500 block">
-                {cat._count.products} {cat._count.products === 1 ? 'Product' : 'Products'} Available
-              </span>
             </div>
           </Link>
         ))}

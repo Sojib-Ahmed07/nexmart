@@ -4,8 +4,8 @@ import { ShoppingBag, Store, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-r
 
 interface DualActionCTAProps {
   isAuthenticated: boolean;
-  userRole?: 'USER' | 'SELLER' | 'ADMIN';
-  isStoreApproved?: boolean; // Pass down the direct DB storefront validation check status
+  userRole?: string; // Loosened from literal union to handle database session strings seamlessly
+  isStoreApproved?: boolean;
 }
 
 export default function DualActionCTA({

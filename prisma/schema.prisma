@@ -83,6 +83,9 @@ model Product {
   updatedAt   DateTime    @updatedAt
 
   @@map("product")
+
+  @@index([stock, storeId])
+  @@index([categoryId])
 }
 
 model Category {

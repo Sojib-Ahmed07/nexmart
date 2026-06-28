@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Store, ShieldCheck, Truck, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Store, ShieldCheck, Truck } from 'lucide-react';
 import { getProductDetailsBySlug } from '../actions';
 import AddToCartButton from './AddToCartButton';
 
@@ -11,17 +11,31 @@ interface ProductDetailPageProps {
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const resolvedParams = await params;
-  const product = await getProductDetailsBySlug(resolvedParams.slug);
+  const rawProduct = await getProductDetailsBySlug(resolvedParams.slug);
 
   // If the customer attempts to query a broken slug namespace, throw an immediate 404 block response
-  if (!product) {
+  if (!rawProduct) {
     notFound();
   }
+
+  // Sanitize the product data securely into plain primitives before streaming it to Client Components
+  const product = {
+    id: rawProduct.id,
+    name: rawProduct.name,
+    slug: rawProduct.slug,
+    description: rawProduct.description,
+    price: Number(rawProduct.price), // Securely map decimal object out into a plain JS number
+    images: rawProduct.images,
+    stock: rawProduct.stock,
+    storeId: rawProduct.storeId,
+    category: rawProduct.category ? { name: rawProduct.category.name } : null,
+    store: rawProduct.store ? { name: rawProduct.store.name } : null,
+  };
 
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(Number(product.price));
+  }).format(product.price);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-6 md:px-12">
@@ -40,11 +54,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
           {/* LEFT CONTAINER: MEDIA FRAME */}
           <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            {product.images?.[0] && (
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
 
           {/* RIGHT CONTAINER: METADATA DETAILS COMPONENT */}
@@ -53,7 +69,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
               {/* Parent Category Trace Chip */}
               <span className="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 text-xs font-semibold tracking-wide">
-                {(product as any).category?.name || "Marketplace"}
+                {product.category?.name || "Marketplace"}
               </span>
 
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
@@ -68,7 +84,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <div className="overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Fulfilled and Sold By</span>
                   <span className="text-sm font-bold text-gray-900 dark:text-white truncate block">
-                    {(product as any).store?.name || "Verified Merchant"}
+                    {product.store?.name || "Verified Merchant"}
                   </span>
                 </div>
               </div>
@@ -107,7 +123,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               {/* Add to Cart Control Button Trigger */}
               <AddToCartButton
                 product={product}
-                storeName={(product as any).store?.name || "Verified Merchant"}
+                storeName={product.store?.name || "Verified Merchant"}
               />
 
               {/* Platform Logistics Protection Claims */}

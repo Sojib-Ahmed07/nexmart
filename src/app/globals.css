@@ -1,3 +1,14 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Define the custom animation class utility */
+  --animate-marquee: marquee 30s linear infinite;
+
+  /* Setup the animation keyframe mechanics */
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-33.333%); }
+  }
+}
