@@ -8,6 +8,30 @@
 
 ---
 
+## ⚡ Performance Architecture & Metrics
+
+To guarantee an instant, fluid user experience across both modern and legacy devices, NexMart has been aggressively audited and optimized using Google Lighthouse and PageSpeed Insights protocols. 
+
+### 📊 PageSpeed Insights Benchmarks
+
+<table>
+  <tr>
+    <td align="center" width="50%"><b>📱 Mobile Environment Performance (96/100)</b></td>
+    <td align="center" width="50%"><b>💻 Desktop Environment Performance (87/100)</b></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/a60c7f3e-d3a6-4cdf-969f-ac78277b1566" width="100%" alt="NexMart Mobile PageSpeed Score"/></td>
+    <td><img src="https://github.com/user-attachments/assets/74429b4a-809e-4535-bbaf-0c2c7a6e48df" width="100%" alt="NexMart Desktop PageSpeed Score"/></td>
+  </tr>
+</table>
+
+### 🛠️ Optimization Strategies Implemented
+* **Zero-Blocking Hydration:** Achieved an ultra-low **10ms Total Blocking Time (TBT)** on mobile networks by leveraging Next.js Server Components (RSC) to ship minimal client-side JavaScript.
+* **Atomic Transaction Processing:** Consolidated multi-vendor basket evaluations, stock validation, and payment webhooks inside tight database transactions to ensure processing overhead never hangs the platform runtime.
+* **Smart Asset Management:** Offloaded media compression and delivery straight to a Cloudinary CDN workflow, preserving a **0.9s First Contentful Paint (FCP)** on mobile endpoints.
+
+---
+
 ## 📸 Platform Interface Showcase
 
 <table>
