@@ -131,3 +131,29 @@ Node.js 18+, PostgreSQL database, Cloudinary account, Brevo account, SSLCommerz 
 git clone [https://github.com/Sojib-Ahmed07/nexmart.git](https://github.com/Sojib-Ahmed07/nexmart.git)
 cd nexmart
 npm install
+
+
+Create a .env file in the root folder:
+
+Code snippet
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+BETTER_AUTH_SECRET="your-32-char-secret"
+BETTER_AUTH_URL="http://localhost:3000"
+
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+
+BREVO_API_KEY="your-brevo-key"
+
+SSLCOMMERZ_STORE_ID="your-store-id"
+SSLCOMMERZ_STORE_PASSWORD="your-store-password"
+SSLCOMMERZ_IS_SANDBOX="true"
+Push database schemas and spin up node runtime server:
+
+Bash
+npx prisma db push   # Set up the database
+npm run dev          # Start the app
+Note: To test SSLCommerz payment callbacks locally, expose your dev server with ngrok and update NEXT_PUBLIC_APP_URL to the ngrok URL.
